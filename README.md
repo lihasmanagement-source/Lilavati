@@ -2,6 +2,8 @@
 
 Lilavati is an iOS math learning app that turns abstract math concepts into short, playable visual levels. Instead of presenting math only as formulas, each level gives the learner a small interaction, puzzle, simulation, or game that makes the underlying idea visible.
 
+Repository: https://github.com/lihasmanagement-source/Lilavati
+
 This OpenAI Build Week submission focuses on five interactive levels built and refined with Codex.
 
 ## Featured Build Week Levels

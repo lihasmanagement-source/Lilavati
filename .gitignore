@@ -1,0 +1,7 @@
+tmp/
+output/
+.claude/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.DS_Store

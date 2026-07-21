@@ -18,6 +18,44 @@ These are the levels I would like reviewed for the competition. They used ChatGP
 | 84 | Derivatives | `Lilavati/DerivativesLevel.swift` | Explore instantaneous rate of change through an interactive visual challenge. |
 | 97 | 3D Coordinates | `Lilavati/Level097_3DCoordinates.swift` | Play an interactive 3D coordinate game by selecting cubes in space. |
 
+## Levels Built From Scratch Since July 13
+
+In addition to the featured levels above, these levels were built from scratch since July 13, 2026:
+
+- Level 25: Absolute Value
+- Level 29: Congruence
+- Level 30: Similarity
+- Level 31: Pythagorean Theorem
+- Level 51: Polynomial Functions
+- Level 52: Factoring Polynomials
+- Level 53: N-Queens Problem
+- Level 54: Rational Functions
+- Level 56: Inverse Functions
+- Level 58: Absolute Value Functions
+- Level 59: Quadratic Systems
+- Level 61: Determinants
+- Level 64: Geometric Sequences
+- Level 65: Sigma Notation
+- Level 66: Galton's Board
+- Level 67: Binomial Theorem
+- Level 69: Prime Numbers
+- Level 71: Boolean Logic
+- Level 76: Unit Circle
+- Level 80: Polar Coordinates
+- Level 81: Parametric Equations
+- Level 82: Limits
+- Level 83: Continuity
+- Level 85: Rates of Change
+- Level 86: Calculus Optimization
+- Level 88: Integrals
+- Level 89: Logarithmic Functions
+- Level 91: Probability
+- Level 92: Arc Length
+- Level 93: Infinite Series
+- Level 94: Chaos Theory
+- Pendulum Launch
+- Polar Coordinates Level
+
 ## Codex Details
 
 - Codex was used throughout the project for design iteration, SwiftUI implementation, debugging, polish, and README preparation.

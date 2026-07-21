@@ -6,6 +6,8 @@ Repository: https://github.com/lihasmanagement-source/Lilavati
 
 This OpenAI Build Week submission focuses on five interactive levels built and refined with Codex.
 
+I used ChatGPT 5.6 and Codex as an end-to-end creative and engineering partner: starting with prompts that described the math concept, learner experience, and desired level feeling, then iterating through mechanics, visual metaphors, SwiftUI implementation, debugging, and polish. Codex helped generate and compare ideas for game mechanics, translate those ideas into playable interactions, refine animations and feedback, fix compile and routing issues, and keep the curriculum organized as the app grew. The workflow was highly iterative: I would test a level, identify what felt unclear or less engaging, then prompt Codex again to improve the interaction, math explanation, pacing, visuals, or implementation details.
+
 ## Featured Build Week Levels
 
 These are the levels I would like reviewed for the competition. They used ChatGPT 5.6 during development, and Codex was used for the entire project. Reviewers are welcome to explore the other levels too.

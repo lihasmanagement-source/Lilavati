@@ -86,6 +86,7 @@ struct MathItCompositeFunctionsLevelView: View {
     @State private var phase: Phase = .closed
     @State private var dollLabels: [String?] = []
     @State private var dollHops: [Bool] = []
+    @State private var dollAbsorbed: [Bool] = []
     @State private var cascadeStep = -1
     @State private var wrongChoice: String?
     @State private var completed = false
@@ -136,6 +137,7 @@ struct MathItCompositeFunctionsLevelView: View {
             .animation(.spring(response: 0.42, dampingFraction: 0.82), value: phase)
             .animation(.spring(response: 0.42, dampingFraction: 0.82), value: cascadeStep)
             .animation(.interpolatingSpring(stiffness: 165, damping: 11), value: dollHops)
+            .animation(.easeInOut(duration: 0.24), value: dollAbsorbed)
             .onAppear { resetRoundState() }
         }
     }
@@ -153,6 +155,8 @@ struct MathItCompositeFunctionsLevelView: View {
                     lidOpen: lidOpen(index)
                 )
                 .rotationEffect(.degrees(hopped(index) ? 0 : (index.isMultiple(of: 2) ? -8 : 7)))
+                .scaleEffect(dollScaleEffect(index))
+                .opacity(dollOpacity(index))
                 .position(point)
                 .transition(.scale(scale: 0.18).combined(with: .opacity))
                 .zIndex(Double(index))
@@ -251,21 +255,24 @@ struct MathItCompositeFunctionsLevelView: View {
     private func runReverseCascade() {
         for index in stride(from: inputIndex, through: 1, by: -1) {
             let step = inputIndex - index
-            let base = Double(step) * 0.82
-            DispatchQueue.main.asyncAfter(deadline: .now() + base + 0.25) {
+            let base = Double(step) * 0.96
+            DispatchQueue.main.asyncAfter(deadline: .now() + base + 0.18) {
                 setLabel(index, valuePart(round.cascade[step]))
                 HapticPlayer.playLightTap()
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + base + 0.54) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + base + 0.42) {
                 setHop(index, false)
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + base + 0.82) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + base + 0.68) {
+                setAbsorbed(index, true)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + base + 0.86) {
                 setLabel(index - 1, valuePart(round.cascade[step + 1]))
                 cascadeStep = step + 1
             }
         }
 
-        let finalDelay = Double(inputIndex) * 0.82 + 0.25
+        let finalDelay = Double(inputIndex) * 0.96 + 0.2
         DispatchQueue.main.asyncAfter(deadline: .now() + finalDelay) {
             HapticPlayer.playCompletionTap()
         }
@@ -293,6 +300,7 @@ struct MathItCompositeFunctionsLevelView: View {
         dollLabels[0] = round.composite
         dollHops = Array(repeating: false, count: dollCount)
         dollHops[0] = true
+        dollAbsorbed = Array(repeating: false, count: dollCount)
         cascadeStep = -1
         wrongChoice = nil
     }
@@ -317,8 +325,9 @@ struct MathItCompositeFunctionsLevelView: View {
     }
 
     private func revealDoll(_ index: Int) {
+        setAbsorbed(index, false)
         setHop(index, false)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
             setHop(index, true)
         }
     }
@@ -333,6 +342,11 @@ struct MathItCompositeFunctionsLevelView: View {
         dollHops[index] = value
     }
 
+    private func setAbsorbed(_ index: Int, _ value: Bool) {
+        guard dollAbsorbed.indices.contains(index) else { return }
+        dollAbsorbed[index] = value
+    }
+
     private func label(for index: Int) -> String {
         if dollLabels.indices.contains(index), let label = dollLabels[index] { return label }
         if index == 0 { return round.composite }
@@ -342,6 +356,19 @@ struct MathItCompositeFunctionsLevelView: View {
     private func hopped(_ index: Int) -> Bool {
         if dollHops.indices.contains(index) { return dollHops[index] }
         return index == 0
+    }
+
+    private func absorbed(_ index: Int) -> Bool {
+        if dollAbsorbed.indices.contains(index) { return dollAbsorbed[index] }
+        return false
+    }
+
+    private func dollOpacity(_ index: Int) -> Double {
+        absorbed(index) ? 0 : 1
+    }
+
+    private func dollScaleEffect(_ index: Int) -> CGFloat {
+        absorbed(index) ? 0.18 : 1
     }
 
     private func color(for index: Int) -> Color {
@@ -370,7 +397,7 @@ struct MathItCompositeFunctionsLevelView: View {
         let parent = finalPoint(index: index - 1, centerY: centerY, size: size)
         return CGPoint(
             x: parent.x,
-            y: parent.y + 54 * scale(for: index - 1)
+            y: parent.y + 38 * scale(for: index - 1)
         )
     }
 
@@ -378,7 +405,7 @@ struct MathItCompositeFunctionsLevelView: View {
         guard phase != .closed, index < inputIndex else { return false }
         switch phase {
         case .cascade:
-            return hopped(index + 1) || cascadeStep >= inputIndex - index - 1
+            return !absorbed(index + 1) && cascadeStep <= inputIndex - index - 1
         default:
             return index < visibleDollCount - 1
         }
@@ -404,48 +431,52 @@ private struct CompositeDollView: View {
                 .blur(radius: 5 * scale)
                 .offset(y: 73 * scale)
 
-            DollBodyShape()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.98, green: 0.78, blue: 0.10),
-                            Color(red: 0.94, green: 0.69, blue: 0.09),
-                            Color(red: 0.72, green: 0.15, blue: 0.18)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
+            if lidOpen {
+                DollBodyShape()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.14, green: 0.07, blue: 0.08),
+                                Color(red: 0.40, green: 0.16, blue: 0.12),
+                                Color(red: 0.07, green: 0.03, blue: 0.04)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
-                )
-                .overlay(alignment: .bottom) {
-                    DollBodyShape()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    color.opacity(0.96),
-                                    color.opacity(0.78)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .mask(
-                            Rectangle()
-                                .frame(height: 63 * scale)
-                                .offset(y: 47 * scale)
-                        )
-                }
-                .overlay(DollBodyShape().stroke(.white.opacity(highlighted ? 0.75 : 0.24), lineWidth: highlighted ? 2.2 : 1.1))
-                .frame(width: 110 * scale, height: 150 * scale)
-                .shadow(color: Color(red: 0.98, green: 0.74, blue: 0.16).opacity(highlighted ? 0.48 : 0.16), radius: highlighted ? 18 : 8)
+                    .frame(width: 82 * scale, height: 124 * scale)
+                    .offset(y: 8 * scale)
+                    .overlay(
+                        DollOpeningShape()
+                            .stroke(Color(red: 0.95, green: 0.65, blue: 0.30).opacity(0.75), lineWidth: max(1.2, 2 * scale))
+                            .frame(width: 72 * scale, height: 26 * scale)
+                            .offset(y: -49 * scale)
+                    )
+
+                dollShell
+                    .mask(Rectangle().frame(width: 56 * scale, height: 156 * scale).offset(x: -28 * scale))
+                    .rotationEffect(.degrees(-8), anchor: .bottom)
+                    .offset(x: -17 * scale, y: 2 * scale)
+
+                dollShell
+                    .mask(Rectangle().frame(width: 56 * scale, height: 156 * scale).offset(x: 28 * scale))
+                    .rotationEffect(.degrees(8), anchor: .bottom)
+                    .offset(x: 17 * scale, y: 2 * scale)
+            } else {
+                dollShell
+            }
 
             scarfAndFace
                 .offset(y: -39 * scale)
+                .opacity(lidOpen ? 0.45 : 1)
 
             floralPainting
                 .offset(y: 26 * scale)
+                .opacity(lidOpen ? 0.55 : 1)
 
             mathLabel
                 .offset(y: 48 * scale)
+                .opacity(lidOpen ? 0.72 : 1)
 
             GlossShape()
                 .fill(.white.opacity(0.24))
@@ -453,6 +484,7 @@ private struct CompositeDollView: View {
                 .rotationEffect(.degrees(8))
                 .offset(x: -30 * scale, y: -6 * scale)
                 .blur(radius: 0.6 * scale)
+                .opacity(lidOpen ? 0.35 : 1)
 
             if lidOpen {
                 DollOpeningShape()
@@ -462,6 +494,42 @@ private struct CompositeDollView: View {
             }
         }
         .frame(width: 128 * scale, height: 178 * scale)
+    }
+
+    private var dollShell: some View {
+        DollBodyShape()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.98, green: 0.78, blue: 0.10),
+                        Color(red: 0.94, green: 0.69, blue: 0.09),
+                        Color(red: 0.72, green: 0.15, blue: 0.18)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .overlay(alignment: .bottom) {
+                DollBodyShape()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                color.opacity(0.96),
+                                color.opacity(0.78)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .mask(
+                        Rectangle()
+                            .frame(height: 63 * scale)
+                            .offset(y: 47 * scale)
+                    )
+            }
+            .overlay(DollBodyShape().stroke(.white.opacity(highlighted ? 0.75 : 0.24), lineWidth: highlighted ? 2.2 : 1.1))
+            .frame(width: 110 * scale, height: 150 * scale)
+            .shadow(color: Color(red: 0.98, green: 0.74, blue: 0.16).opacity(highlighted ? 0.48 : 0.16), radius: highlighted ? 18 : 8)
     }
 
     private var scarfAndFace: some View {
